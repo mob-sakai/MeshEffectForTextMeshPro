@@ -42,3 +42,8 @@ _Android/
 _iOS/
 _WebGL/
 _Standalone/
+
+_Standalone/
+
+/Assets/TextMesh Pro/
+/Assets/Editor Resources/
