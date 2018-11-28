@@ -1,7 +1,12 @@
 MeshEffectForTextMeshPro
 ===
 
+### NOTE: This project is WIP.
+### NOTE: This project will be integrated to [UIEffect](https://github.com/mob-sakai/UIEffect).
+
 MeshEffectForTextMeshPro provide visual effect components for TextMeshPro in Unity.
+
+![](https://user-images.githubusercontent.com/12690315/49157470-2dc50a80-f363-11e8-82b5-007a6ae04f2a.png)
 
 [![](https://img.shields.io/github/release/mob-sakai/MeshEffectForTextMeshPro.svg?label=latest%20version)](https://github.com/mob-sakai/MeshEffectForTextMeshPro/releases)
 [![](https://img.shields.io/github/release-date/mob-sakai/MeshEffectForTextMeshPro.svg)](https://github.com/mob-sakai/MeshEffectForTextMeshPro/releases)
