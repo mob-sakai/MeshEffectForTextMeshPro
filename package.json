@@ -1,10 +1,10 @@
 {
-  "name": "TMProEffect",
+  "name": "MeshEffectForTextMeshPro",
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mob-sakai/TMProEffect.git"
+    "url": "git+https://github.com/mob-sakai/MeshEffectForTextMeshPro.git"
   },
-  "src": "Assets/Coffee/UIExtensions/TMProEffect",
+  "src": "Assets/Coffee/UIExtensions/MeshEffectForTextMeshPro",
   "license": "MIT"
 }
