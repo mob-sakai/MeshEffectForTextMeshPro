@@ -17,7 +17,7 @@ namespace Coffee.UIExtensions
 	/// </summary>
 	[RequireComponent(typeof(Graphic))]
 	[AddComponentMenu("UI/UIEffect/UIShadow", 100)]
-	public class UIShadow : Shadow, IParameterTexture
+	public class UIShadow : BaseMeshEffect//, IParameterTexture
 #if UNITY_EDITOR
 	, ISerializationCallbackReceiver
 #endif
@@ -73,6 +73,73 @@ namespace Coffee.UIExtensions
 		[SerializeField] List<AdditionalShadow> m_AdditionalShadows = new List<AdditionalShadow>();
 
 
+		[SerializeField]
+		private Color m_EffectColor = new Color (0f, 0f, 0f, 0.5f);
+
+		[SerializeField]
+		private Vector2 m_EffectDistance = new Vector2 (1f, -1f);
+
+		[SerializeField]
+		private bool m_UseGraphicAlpha = true;
+
+		private const float kMaxEffectDistance = 600f;
+
+#if UNITY_EDITOR
+		protected override void OnValidate ()
+		{
+			effectDistance = m_EffectDistance;
+			base.OnValidate ();
+		}
+
+#endif
+
+		public Color effectColor
+		{
+			get { return m_EffectColor; }
+			set
+			{
+				m_EffectColor = value;
+				if (graphic != null)
+					graphic.SetVerticesDirty ();
+			}
+		}
+
+		public Vector2 effectDistance
+		{
+			get { return m_EffectDistance; }
+			set
+			{
+				if (value.x > kMaxEffectDistance)
+					value.x = kMaxEffectDistance;
+				if (value.x < -kMaxEffectDistance)
+					value.x = -kMaxEffectDistance;
+
+				if (value.y > kMaxEffectDistance)
+					value.y = kMaxEffectDistance;
+				if (value.y < -kMaxEffectDistance)
+					value.y = -kMaxEffectDistance;
+
+				if (m_EffectDistance == value)
+					return;
+
+				m_EffectDistance = value;
+
+				if (graphic != null)
+					graphic.SetVerticesDirty ();
+			}
+		}
+
+		public bool useGraphicAlpha
+		{
+			get { return m_UseGraphicAlpha; }
+			set
+			{
+				m_UseGraphicAlpha = value;
+				if (graphic != null)
+					graphic.SetVerticesDirty ();
+			}
+		}
+
 		//################################
 		// Public Members.
 		//################################
@@ -119,12 +186,12 @@ namespace Coffee.UIExtensions
 		/// <summary>
 		/// Gets or sets the parameter index.
 		/// </summary>
-		public int parameterIndex { get; set; }
+		//public int parameterIndex { get; set; }
 
 		/// <summary>
 		/// Gets the parameter texture.
 		/// </summary>
-		public ParameterTexture ptex{ get; private set; }
+		//public ParameterTexture ptex{ get; private set; }
 
 		int _graphicVertexCount;
 		static readonly List<UIShadow> tmpShadows = new List<UIShadow>();
@@ -133,23 +200,23 @@ namespace Coffee.UIExtensions
 		{
 			base.OnEnable();
 
-			_uiEffect = GetComponent<UIEffect>();
-			if (_uiEffect)
-			{
-				ptex = _uiEffect.ptex;
-				ptex.Register(this);
-			}
+			//_uiEffect = GetComponent<UIEffect>();
+			//if (_uiEffect)
+			//{
+			//	ptex = _uiEffect.ptex;
+			//	ptex.Register(this);
+			//}
 		}
 
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_uiEffect = null;
-			if (ptex != null)
-			{
-				ptex.Unregister(this);
-				ptex = null;
-			}
+			//_uiEffect = null;
+			//if (ptex != null)
+			//{
+			//	ptex.Unregister(this);
+			//	ptex = null;
+			//}
 		}
 
 
@@ -188,16 +255,16 @@ namespace Coffee.UIExtensions
 			// Append shadow vertices.
 			//================================
 			{
-				_uiEffect = _uiEffect ?? GetComponent<UIEffect>();
+				//_uiEffect = _uiEffect ?? GetComponent<UIEffect>();
 				var start = s_Verts.Count - _graphicVertexCount;
 				var end = s_Verts.Count;
 
-				if (ptex != null && _uiEffect && _uiEffect.isActiveAndEnabled)
-				{
-					ptex.SetData(this, 0, _uiEffect.effectFactor);	// param.x : effect factor
-					ptex.SetData(this, 1, 255);	// param.y : color factor
-					ptex.SetData(this, 2, m_BlurFactor);	// param.z : blur factor
-				}
+				//if (ptex != null && _uiEffect && _uiEffect.isActiveAndEnabled)
+				//{
+				//	ptex.SetData(this, 0, _uiEffect.effectFactor);	// param.x : effect factor
+				//	ptex.SetData(this, 1, 255);	// param.y : color factor
+				//	ptex.SetData(this, 2, m_BlurFactor);	// param.z : blur factor
+				//}
 
 				_ApplyShadow(s_Verts, effectColor, ref start, ref end, effectDistance, style, useGraphicAlpha);
 			}
@@ -208,7 +275,7 @@ namespace Coffee.UIExtensions
 			s_Verts.Clear();
 		}
 
-		UIEffect _uiEffect;
+		//UIEffect _uiEffect;
 
 		//################################
 		// Private Members.
@@ -267,9 +334,9 @@ namespace Coffee.UIExtensions
 			if (verts.Capacity < neededCapacity)
 				verts.Capacity = neededCapacity;
 
-			float normalizedIndex = ptex != null && _uiEffect && _uiEffect.isActiveAndEnabled
-				? ptex.GetNormalizedIndex(this)
-				: -1;
+			//float normalizedIndex = ptex != null && _uiEffect && _uiEffect.isActiveAndEnabled
+				//? ptex.GetNormalizedIndex(this)
+				//: -1;
 
 			// Add 
 			UIVertex vt = default(UIVertex);
@@ -299,13 +366,13 @@ namespace Coffee.UIExtensions
 
 
 				// Set UIEffect prameters
-				if (0 <= normalizedIndex)
-				{
-					vt.uv0 = new Vector2(
-						vt.uv0.x,
-						normalizedIndex
-					);
-				}
+				//if (0 <= normalizedIndex)
+				//{
+				//	vt.uv0 = new Vector2(
+				//		vt.uv0.x,
+				//		normalizedIndex
+				//	);
+				//}
 
 				verts[i] = vt;
 			}

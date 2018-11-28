@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Serialization;
+using TMPro;
 
 namespace Coffee.UIExtensions
 {
@@ -149,7 +150,7 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		public Texture noiseTexture
 		{
-			get { return m_NoiseTexture ?? graphic.material.GetTexture("_NoiseTex"); }
+			get { return m_NoiseTexture ?? material.GetTexture("_NoiseTex"); }
 			set
 			{
 				if (m_NoiseTexture != value)
@@ -233,11 +234,52 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		public override ParameterTexture ptex { get { return _ptex; } }
 
+		public Material material
+		{
+			get
+			{
+				var g = graphic;
+				var t = g as TMPro.TextMeshProUGUI;
+				return t ? t.fontMaterial : g.material;
+			}
+			set
+			{
+				var g = graphic;
+				var t = g as TMPro.TextMeshProUGUI;
+				if(t && t.fontMaterial != value)
+				{
+					t.fontMaterial = value;
+				}
+				else if(!t && g.material != value)
+				{
+					g.material = value;
+				}
+			}
+		}
+
+		public Material GetModifiedMaterial (Material baseMaterial)
+		{
+			//if (graphic is TMPro.TextMeshProUGUI && baseMaterial.HasProperty("_NoiseTex"))
+			//{
+			//	Debug.Log (m_NoiseTexture);
+			//	baseMaterial.SetTexture ("_NoiseTex", m_NoiseTexture);
+			//}
+			return baseMaterial;
+		}
+
 		/// <summary>
 		/// Modifies the material.
 		/// </summary>
 		public override void ModifyMaterial()
 		{
+			if (graphic is TMPro.TextMeshProUGUI)
+			{
+				TMPro.TextMeshProUGUI t = graphic as TMPro.TextMeshProUGUI;
+				//baseMaterial.SetTexture ("_NoiseTex", m_NoiseTexture);
+				Debug.LogFormat ("ModifyMaterial {0}, {1}, {2}, {3}, {4}", t.material, t.fontMaterial, t.fontMaterial.GetInstanceID(), t.fontSharedMaterial, t.fontSharedMaterial.GetInstanceID ());
+				return;
+			}
+
 			ulong hash = (m_NoiseTexture ? (uint)m_NoiseTexture.GetInstanceID() : 0) + ((ulong)1 << 32) + ((ulong)m_ColorMode << 36);
 			if (_materialCache != null && (_materialCache.hash != hash || !isActiveAndEnabled || !m_EffectMaterial))
 			{
@@ -247,15 +289,15 @@ namespace Coffee.UIExtensions
 
 			if (!isActiveAndEnabled || !m_EffectMaterial)
 			{
-				graphic.material = null;
+				material = null;
 			}
 			else if (!m_NoiseTexture)
 			{
-				graphic.material = m_EffectMaterial;
+				material = m_EffectMaterial;
 			}
 			else if (_materialCache != null && _materialCache.hash == hash)
 			{
-				graphic.material = _materialCache.material;
+				material = _materialCache.material;
 			}
 			else
 			{
@@ -266,7 +308,7 @@ namespace Coffee.UIExtensions
 						mat.SetTexture("_NoiseTex", m_NoiseTexture);
 						return mat;
 					});
-				graphic.material = _materialCache.material;
+				material = _materialCache.material;
 			}
 		}
 
@@ -275,8 +317,13 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		public override void ModifyMesh(VertexHelper vh)
 		{
+			Debug.Log ("ModifyMesh");
+
+			//return;
 			if (!isActiveAndEnabled)
 				return;
+
+
 
 			float normalizedIndex = ptex.GetNormalizedIndex(this);
 
@@ -289,6 +336,7 @@ namespace Coffee.UIExtensions
 			UIVertex vertex = default(UIVertex);
 			bool effectEachCharacter = graphic is Text && m_EffectArea == EffectArea.Character;
 			float x, y;
+			/*
 			int count = vh.currentVertCount;
 			for (int i = 0; i < count; i++)
 			{
@@ -305,18 +353,50 @@ namespace Coffee.UIExtensions
 					y = Mathf.Clamp01(vertex.position.y / rect.height + 0.5f);
 				}
 
-				vertex.uv0 = new Vector2(
-					Packer.ToFloat(vertex.uv0.x, vertex.uv0.y),
-					Packer.ToFloat(x, y, normalizedIndex)
+				//vertex.uv0 = new Vector2(
+				//	Packer.ToFloat(vertex.uv0.x, vertex.uv0.y),
+				//	Packer.ToFloat(x, y, normalizedIndex)
+				//);
+
+				vertex.uv2 = new Vector2 (
+					Packer.ToFloat (x, y, normalizedIndex), 0
 				);
 
 				vh.SetUIVertex(vertex, i);
 			}
+			*/
+
+
+			var t = graphic as TMPro.TextMeshProUGUI;
+			Mesh mesh = t.mesh;
+			int count = mesh.vertexCount;
+			Vector2[] uvs = mesh.uv;
+			for (int i = 0; i < count; i++)
+			{
+				if (effectEachCharacter)
+				{
+					x = splitedCharacterPosition [i % 4].x;
+					y = splitedCharacterPosition [i % 4].y;
+				}
+				else
+				{
+					x = Mathf.Clamp01 (vertex.position.x / rect.width + 0.5f);
+					y = Mathf.Clamp01 (vertex.position.y / rect.height + 0.5f);
+				}
+
+				uvs [i] = new Vector2(
+					Packer.ToFloat(uvs [i].x, uvs [i].y),
+					Packer.ToFloat(x, y, normalizedIndex)
+				);
+			}
+			mesh.uv = uvs;
+
+			Debug.Log (count);
 		}
 
 		protected override void SetDirty()
 		{
-			ptex.RegisterMaterial(targetGraphic.material);
+			ptex.RegisterMaterial(material);
 			ptex.SetData(this, 0, m_EffectFactor);	// param1.x : location
 			ptex.SetData(this, 1, m_Width);		// param1.y : width
 			ptex.SetData(this, 2, m_Softness);	// param1.z : softness
@@ -349,16 +429,85 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		protected override void OnEnable()
 		{
+			Canvas.willRenderCanvases += test;
 			base.OnEnable();
 			_player.OnEnable(f => effectFactor = f);
 		}
 
 		protected override void OnDisable()
 		{
+			Canvas.willRenderCanvases -= test;
 			MaterialCache.Unregister(_materialCache);
 			_materialCache = null;
 			_player.OnDisable();
 			base.OnDisable();
+		}
+
+
+		void test ()
+		{
+			TextMeshProUGUI t = GetComponent<TextMeshProUGUI> ();
+			if (havePropertiesChanged)
+			{
+				havePropertiesChanged = false;
+				Debug.Log ("test");
+				if (!isActiveAndEnabled)
+					return;
+
+
+
+				float normalizedIndex = ptex.GetNormalizedIndex (this);
+
+				// rect.
+				var tex = noiseTexture;
+				var aspectRatio = m_KeepAspectRatio && tex ? ((float)tex.width) / tex.height : -1;
+				//Rect rect = m_EffectArea.GetEffectArea (vh, graphic, aspectRatio);
+				var rect = graphic.rectTransform.rect;
+
+				// Calculate vertex position.
+				UIVertex vertex = default (UIVertex);
+				bool effectEachCharacter = graphic is Text && m_EffectArea == EffectArea.Character;
+				float x, y;
+
+				//var t = graphic as TMPro.TextMeshProUGUI;
+				Mesh mesh = t.mesh;
+				int count = mesh.vertexCount;
+				Vector2 [] uvs = mesh.uv;
+				Vector3 [] positions = mesh.vertices;
+				for (int i = 0; i < count; i++)
+				{
+					if (effectEachCharacter)
+					{
+						x = splitedCharacterPosition [i % 4].x;
+						y = splitedCharacterPosition [i % 4].y;
+					}
+					else
+					{
+						x = Mathf.Clamp01 (positions[i].x / rect.width + 0.5f);
+						y = Mathf.Clamp01 (positions[i].y / rect.height + 0.5f);
+					}
+
+					uvs [i] = new Vector2 (
+						Packer.ToFloat (uvs [i].x, uvs [i].y),
+						Packer.ToFloat (x, y, normalizedIndex)
+					);
+				}
+				mesh.uv = uvs;
+				t.canvasRenderer.SetMesh (mesh);
+
+				Debug.Log (count);
+			}
+		}
+
+		bool havePropertiesChanged;
+
+		void LateUpdate ()
+		{
+			TextMeshProUGUI t = GetComponent<TextMeshProUGUI> ();
+			if (t.havePropertiesChanged)
+			{
+				havePropertiesChanged = true;
+			}
 		}
 
 #if UNITY_EDITOR
@@ -384,7 +533,8 @@ namespace Coffee.UIExtensions
 				_player.updateMode = m_UpdateMode;
 			}
 		}
-		#pragma warning restore 0612
+
+#pragma warning restore 0612
 #endif
 
 		//################################
