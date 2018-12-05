@@ -1,9 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//#define NOT_USE_TMPRO	// If your project does not use TMPro, uncomment this line.
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
+#if !NOT_USE_TMPRO
+using System.Collections.Generic;
 using TMPro;
+#endif
 
 namespace Coffee.UIExtensions
 {
@@ -17,6 +20,7 @@ namespace Coffee.UIExtensions
 		//################################
 		// Constant or Static Members.
 		//################################
+#if !NOT_USE_TMPRO
 		static readonly List<Vector2> s_Uv0 = new List<Vector2> ();
 		static readonly List<Vector2> s_Uv1 = new List<Vector2> ();
 		static readonly List<Vector3> s_Vertices = new List<Vector3> ();
@@ -27,6 +31,8 @@ namespace Coffee.UIExtensions
 		static readonly VertexHelper s_VertexHelper = new VertexHelper ();
 		static readonly List<TMP_SubMeshUI> s_SubMeshUIs = new List<TMP_SubMeshUI> ();
 		static readonly List<Mesh> s_Meshes = new List<Mesh> ();
+#endif
+		static readonly Material [] s_EmptyMaterials = new Material [0];
 
 
 		//################################
@@ -35,17 +41,103 @@ namespace Coffee.UIExtensions
 		/// <summary>
 		/// The Graphic attached to this GameObject.
 		/// </summary>
-		public Graphic graphic { get { return _graphic ?? (_graphic = GetComponent<Graphic> ()); } }
+		public Graphic graphic { get { Initialize (); return _graphic; } }
 
 		/// <summary>
 		/// The CanvasRenderer attached to this GameObject.
 		/// </summary>
-		public CanvasRenderer canvasRenderer { get { return _canvasRenderer ?? (_canvasRenderer = GetComponent<CanvasRenderer> ()); } }
+		public CanvasRenderer canvasRenderer { get { Initialize (); return _canvasRenderer; } }
 
+#if !NOT_USE_TMPRO
 		/// <summary>
 		/// The TMP_Text attached to this GameObject.
 		/// </summary>
-		public TMP_Text textMeshPro { get { return _textMeshPro ?? (_textMeshPro = GetComponent<TMP_Text> ()); } }
+		public TMP_Text textMeshPro { get { Initialize (); return _textMeshPro; } }
+#endif
+
+		/// <summary>
+		/// The RectTransform attached to this GameObject.
+		/// </summary>
+		public RectTransform rectTransform { get { Initialize (); return _rectTransform; } }
+
+		/// <summary>
+		/// Is TextMeshPro or TextMeshProUGUI attached to this GameObject?
+		/// </summary>
+		public bool isTMPro
+		{
+			get
+			{
+#if !NOT_USE_TMPRO
+				return textMeshPro != null;
+#else
+				return false;
+#endif
+			}
+		}
+
+		/// <summary>
+		/// The material for rendering.
+		/// </summary>
+		public virtual Material material
+		{
+			get
+			{
+
+#if !NOT_USE_TMPRO
+				if (textMeshPro)
+				{
+					return textMeshPro.fontSharedMaterial;
+				}
+				else
+#endif
+				if (graphic)
+				{
+					return graphic.material;
+				}
+				else
+				{
+					return null;
+				}
+			}
+			set
+			{
+#if !NOT_USE_TMPRO
+				if (textMeshPro)
+				{
+					textMeshPro.fontSharedMaterial = value;
+				}
+				else
+#endif
+				if (graphic)
+				{
+					graphic.material = value;
+				}
+			}
+		}
+
+		public virtual Material[] materials
+		{
+			get
+			{
+
+#if !NOT_USE_TMPRO
+				if (textMeshPro)
+				{
+					return textMeshPro.fontSharedMaterials ?? s_EmptyMaterials;
+				}
+				else
+#endif
+				if (graphic)
+				{
+					_materials [0] = graphic.material;
+					return _materials;
+				}
+				else
+				{
+					return s_EmptyMaterials;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Call used to modify mesh. (legacy)
@@ -68,11 +160,9 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		public virtual void SetVerticesDirty ()
 		{
+#if !NOT_USE_TMPRO
 			if (textMeshPro)
 			{
-				//Debug.Log ("SetVerticesDirty");
-				//_havePropChanged = true;
-				//textMeshPro.isRightToLeftText
 				foreach (var info in textMeshPro.textInfo.meshInfo)
 				{
 					var mesh = info.mesh;
@@ -91,7 +181,7 @@ namespace Coffee.UIExtensions
 
 				if (canvasRenderer)
 				{
-					canvasRenderer.SetMesh (_textMeshPro.mesh);
+					canvasRenderer.SetMesh (textMeshPro.mesh);
 
 					GetComponentsInChildren (false, s_SubMeshUIs);
 					foreach (var sm in s_SubMeshUIs)
@@ -102,7 +192,9 @@ namespace Coffee.UIExtensions
 				}
 				textMeshPro.havePropertiesChanged = true;
 			}
-			else if (graphic)
+			else
+#endif
+			if (graphic)
 			{
 				graphic.SetVerticesDirty ();
 			}
@@ -117,21 +209,41 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		protected virtual bool isLegacyMeshModifier { get { return false; } }
 
+
+		protected virtual void Initialize ()
+		{
+			if (!_initialized)
+			{
+				_initialized = true;
+				_graphic = _graphic ?? GetComponent<Graphic> ();
+				_canvasRenderer = _canvasRenderer ?? GetComponent<CanvasRenderer> ();
+				_rectTransform = _rectTransform ?? GetComponent<RectTransform> ();
+#if !NOT_USE_TMPRO
+				_textMeshPro = _textMeshPro ?? GetComponent<TMP_Text> ();
+#endif
+			}
+		}
+
 		/// <summary>
 		/// This function is called when the object becomes enabled and active.
 		/// </summary>
 		protected override void OnEnable ()
 		{
+			_initialized = false;
+			SetVerticesDirty ();
+#if !NOT_USE_TMPRO
 			if (textMeshPro)
 			{
-
 				TMPro_EventManager.TEXT_CHANGED_EVENT.Add (OnTextChanged);
-				//#if UNITY_EDITOR
-				//				TMPro_EventManager.TEXTMESHPRO_PROPERTY_EVENT.Add (OnTextChanged);
-				//				TMPro_EventManager.TEXTMESHPRO_UGUI_PROPERTY_EVENT.Add (OnTextChanged);
-				//#endif
 			}
-			SetVerticesDirty ();
+#endif
+
+#if UNITY_EDITOR && !NOT_USE_TMPRO
+			if (graphic && textMeshPro)
+			{
+				GraphicRebuildTracker.TrackGraphic (graphic);
+			}
+#endif
 		}
 
 		/// <summary>
@@ -139,12 +251,17 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		protected override void OnDisable ()
 		{
+#if !NOT_USE_TMPRO
 			TMPro_EventManager.TEXT_CHANGED_EVENT.Remove (OnTextChanged);
-			//#if UNITY_EDITOR
-			//			TMPro_EventManager.TEXTMESHPRO_PROPERTY_EVENT.Remove (OnTextChanged);
-			//			TMPro_EventManager.TEXTMESHPRO_UGUI_PROPERTY_EVENT.Remove (OnTextChanged);
-			//#endif
+#endif
 			SetVerticesDirty ();
+
+#if UNITY_EDITOR && !NOT_USE_TMPRO
+			if (graphic && textMeshPro)
+			{
+				GraphicRebuildTracker.UnTrackGraphic (graphic);
+			}
+#endif
 		}
 
 
@@ -153,15 +270,16 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		protected virtual void LateUpdate ()
 		{
-			var t = _textMeshPro;
-			if (t)
+#if !NOT_USE_TMPRO
+			if (textMeshPro)
 			{
-				if (t.havePropertiesChanged || _isTextMeshProActive != t.isActiveAndEnabled)
+				if (textMeshPro.havePropertiesChanged || _isTextMeshProActive != textMeshPro.isActiveAndEnabled)
 				{
 					SetVerticesDirty ();
 				}
-				_isTextMeshProActive = t.isActiveAndEnabled;
+				_isTextMeshProActive = textMeshPro.isActiveAndEnabled;
 			}
+#endif
 		}
 
 		/// <summary>
@@ -186,11 +304,15 @@ namespace Coffee.UIExtensions
 		//################################
 		// Private Members.
 		//################################
-		TMP_Text _textMeshPro;
-		Graphic _graphic;
+		bool _initialized;
 		CanvasRenderer _canvasRenderer;
+		RectTransform _rectTransform;
+		Graphic _graphic;
+		Material [] _materials = new Material [1];
+
+#if !NOT_USE_TMPRO
 		bool _isTextMeshProActive;
-		bool _havePropChanged;
+		TMP_Text _textMeshPro;
 
 		/// <summary>
 		/// Called when any TextMeshPro generated the mesh.
@@ -198,22 +320,9 @@ namespace Coffee.UIExtensions
 		/// <param name="obj">TextMeshPro object.</param>
 		void OnTextChanged (Object obj)
 		{
-			//if(_havePropChanged)
-			//{
-			//	_havePropChanged = false;
-			//	Debug.Log ("OnTextChanged _havePropChanged");
-			//}
-			//else
-			//{
-			//	Debug.Log ("OnTextChanged _havePropChanged Not!");
-			//	SetVerticesDirty ();
-			//	_textMeshPro.havePropertiesChanged = false;
-			//}
-
-
 			// Skip if the object is different from the current object or the text is empty.
-			var textInfo = _textMeshPro.textInfo;
-			if (_textMeshPro != obj || textInfo.characterCount - textInfo.spaceCount <= 0)
+			var textInfo = textMeshPro.textInfo;
+			if (textMeshPro != obj || textInfo.characterCount - textInfo.spaceCount <= 0)
 			{
 				return;
 			}
@@ -248,7 +357,7 @@ namespace Coffee.UIExtensions
 			// Set the modified meshes to the CanvasRenderers (for UI only).
 			if (canvasRenderer)
 			{
-				canvasRenderer.SetMesh (_textMeshPro.mesh);
+				canvasRenderer.SetMesh (textMeshPro.mesh);
 				GetComponentsInChildren (false, s_SubMeshUIs);
 				foreach (var sm in s_SubMeshUIs)
 				{
@@ -259,8 +368,6 @@ namespace Coffee.UIExtensions
 
 			// Clear.
 			s_Meshes.Clear ();
-			//s_SubMeshes.Clear ();
-			//s_SubMeshUIs.Clear ();
 		}
 
 		void FillVertexHelper (VertexHelper vh, Mesh mesh)
@@ -285,5 +392,6 @@ namespace Coffee.UIExtensions
 				vh.AddTriangle (s_Indices [i], s_Indices [i + 1], s_Indices [i + 2]);
 			}
 		}
+#endif
 	}
 }
