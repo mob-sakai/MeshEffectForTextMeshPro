@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.2.0](https://github.com/mob-sakai/MeshEffectForTextMeshPro/tree/v0.2.0) (2018-12-05)
+
+[Full Changelog](https://github.com/mob-sakai/MeshEffectForTextMeshPro/compare/v0.1.0...v0.2.0)
+
+**Implemented enhancements:**
+
+- Add a symbol “NOT\_USE\_TMPRO” for project not using TMPro [\#4](https://github.com/mob-sakai/MeshEffectForTextMeshPro/issues/4)
+- Add component menu [\#3](https://github.com/mob-sakai/MeshEffectForTextMeshPro/issues/3)
+
 ## [v0.1.0](https://github.com/mob-sakai/MeshEffectForTextMeshPro/tree/v0.1.0) (2018-11-28)
 
 [Full Changelog](https://github.com/mob-sakai/MeshEffectForTextMeshPro/compare/a9c4ec4e72a055ca5e5c24f6a75c6720f0f6fd7f...v0.1.0)
