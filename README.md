@@ -1,7 +1,7 @@
 MeshEffectForTextMeshPro
 ===
 
-### NOTE: This project is WIP.
+### NOTE: This project is experimental.
 ### NOTE: This project will be integrated to [UIEffect](https://github.com/mob-sakai/UIEffect).
 
 MeshEffectForTextMeshPro provide visual effect components for TextMeshPro in Unity.
@@ -50,6 +50,10 @@ Let's decorate your TextMeshPro with effects!
 * Good performance.
 * You can implement MeshEffect with VertexHelper or Mesh.
 * Easily make your mesh effect support TextMeshPro. [See detail](#make-your-mesh-effect-support-textmeshpro)
+* If your project does not use TMPro, add "NOT_USE_TMPRO" symbol. Or uncomment the first line of BaseMeshEffect.cs.  
+```cs
+//#define NOT_USE_TMPRO // If your project does not use TMPro, uncomment this line.
+```
 
 
 
@@ -68,7 +72,11 @@ Let's decorate your TextMeshPro with effects!
 ![](https://user-images.githubusercontent.com/12690315/46567584-3525f400-c970-11e8-9839-5c9e810b0b80.png)
 3. Add any effect component to TextMeshPro from `Add Component` in inspector or `Component > MeshEffectForTextMeshPro > ...` menu.  
 4. Adjust the parameters of the effect as you like, in inspector.  
-5. Enjoy!
+5. If your project does not use TMPro, add "NOT_USE_TMPRO" symbol. Or uncomment the first line of BaseMeshEffect.cs.  
+```cs
+//#define NOT_USE_TMPRO // If your project does not use TMPro, uncomment this line.
+```
+6. Enjoy!
 
 
 ##### Requirement
@@ -102,6 +110,11 @@ void OnEnable ()
 {
     ...
 }
+void OnDisable ()
+{
+    ...
+}
+...
 void ModifyMesh (VertexHelper vh)
 {
     ...
@@ -110,13 +123,19 @@ void ModifyMesh (VertexHelper vh)
 // After
 protected override void OnEnable ()
 {
-    ...
     base.OnEnable();
+    ...
 }
+void OnDisable ()
+{
+    base.OnDisable();
+    ...
+}
+...
 public override void ModifyMesh (VertexHelper vh)
 {
-    ...
     //base.ModifyMesh(vh);  <- ModifyMesh's base method is unnecessary.
+    ...
 }
 ```
 3. Change `graphic.SetVerticesDirty` to `SetVerticesDirty`
