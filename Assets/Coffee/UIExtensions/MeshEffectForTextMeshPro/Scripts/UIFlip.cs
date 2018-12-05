@@ -6,9 +6,9 @@ using UnityEngine.UI;
 namespace Coffee.UIExtensions
 {
 
-	[RequireComponent(typeof(Graphic))]
+	//[RequireComponent(typeof(Graphic))]
 	[DisallowMultipleComponent]
-	[AddComponentMenu("UI/UIEffect/UIFlip",102)]
+	[AddComponentMenu("UI/MeshEffectForTextMeshPro/UIFlip", 102)]
 	public class UIFlip : BaseMeshEffect
 	{
 		//################################

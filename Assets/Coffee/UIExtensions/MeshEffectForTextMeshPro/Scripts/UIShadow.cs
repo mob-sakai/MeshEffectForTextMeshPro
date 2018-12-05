@@ -15,8 +15,8 @@ namespace Coffee.UIExtensions
 	/// <summary>
 	/// UIEffect.
 	/// </summary>
-	[RequireComponent(typeof(Graphic))]
-	[AddComponentMenu("UI/UIEffect/UIShadow", 100)]
+	//[RequireComponent(typeof(Graphic))]
+	[AddComponentMenu("UI/MeshEffectForTextMeshPro/UIShadow", 100)]
 	public class UIShadow : BaseMeshEffect//, IParameterTexture
 #if UNITY_EDITOR
 	, ISerializationCallbackReceiver
