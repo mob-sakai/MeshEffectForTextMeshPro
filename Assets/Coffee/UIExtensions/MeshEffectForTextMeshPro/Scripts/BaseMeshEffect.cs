@@ -271,9 +271,9 @@ namespace Coffee.UIExtensions
 		protected virtual void LateUpdate ()
 		{
 #if !NOT_USE_TMPRO
-			if (textMeshPro)
+			if (isActiveAndEnabled && textMeshPro)
 			{
-				if (textMeshPro.havePropertiesChanged || _isTextMeshProActive != textMeshPro.isActiveAndEnabled)
+				if (rectTransform.hasChanged || textMeshPro.havePropertiesChanged || _isTextMeshProActive != textMeshPro.isActiveAndEnabled)
 				{
 					SetVerticesDirty ();
 				}
@@ -287,7 +287,23 @@ namespace Coffee.UIExtensions
 		/// </summary>
 		protected override void OnDidApplyAnimationProperties ()
 		{
-			SetVerticesDirty ();
+			if (isActiveAndEnabled)
+			{
+				SetVerticesDirty ();
+			}
+		}
+
+		/// <summary>
+		/// This callback is called if an associated RectTransform has its dimensions changed.
+		/// </summary>
+		protected override void OnRectTransformDimensionsChange ()
+		{
+#if !NOT_USE_TMPRO
+			if (isActiveAndEnabled && textMeshPro)
+			{
+				SetVerticesDirty ();
+			}
+#endif
 		}
 
 #if UNITY_EDITOR
