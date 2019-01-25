@@ -340,7 +340,10 @@ namespace Coffee.UIExtensions
 				// Legacy mode: Modify the meshes directly.
 				foreach (var m in s_Meshes)
 				{
-					ModifyMesh (m);
+					if (m)
+					{
+						ModifyMesh (m);
+					}
 				}
 			}
 			else
@@ -348,9 +351,12 @@ namespace Coffee.UIExtensions
 				// Convert meshes to VertexHelpers and modify them.
 				foreach (var m in s_Meshes)
 				{
-					FillVertexHelper (s_VertexHelper, m);
-					ModifyMesh (s_VertexHelper);
-					s_VertexHelper.FillMesh (m);
+					if(m)
+					{
+						FillVertexHelper (s_VertexHelper, m);
+						ModifyMesh (s_VertexHelper);
+						s_VertexHelper.FillMesh (m);
+					}
 				}
 			}
 
